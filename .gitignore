@@ -6,3 +6,4 @@
 bin/
 out/
 target/
+dependency-reduced-pom.xml

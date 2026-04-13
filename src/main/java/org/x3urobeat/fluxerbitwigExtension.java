@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 12:25:38
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-13 17:09:08
+ * Last Modified: 2026-04-13 17:11:04
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -14,11 +14,12 @@
  * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+
 package org.x3urobeat;
 
 import com.bitwig.extension.controller.api.ControllerHost;
-import com.bitwig.extension.controller.api.Transport;
 import com.bitwig.extension.controller.ControllerExtension;
+
 
 /**
  * Bitwig extension main file
@@ -28,6 +29,7 @@ import com.bitwig.extension.controller.ControllerExtension;
 public class fluxerbitwigExtension extends ControllerExtension  {
 
     public Config config;
+    public Request request;
 
 
     /**
@@ -37,6 +39,7 @@ public class fluxerbitwigExtension extends ControllerExtension  {
         super(definition, host);
 
         config  = new Config();
+        request = new Request(this);
     }
 
     /** Logs debug message to Bitwig controller console */
@@ -52,6 +55,11 @@ public class fluxerbitwigExtension extends ControllerExtension  {
     /** Logs error message to Bitwig controller console */
     public void logErr(String txt) {
         getHost().errorln("[fluxer-bitwig | ERROR] " + txt);
+    }
+
+    /** Shows a on screen popup notification */
+    public void showNotification(String txt) {
+        getHost().showPopupNotification(txt);
     }
 
 

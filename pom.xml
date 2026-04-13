@@ -28,6 +28,13 @@
             <artifactId>extension-api</artifactId>
             <version>25</version>
         </dependency>
+
+        <!-- We need to ping the Fluxer API. HttpsURLConnection does not support PATCH and HttpClient can't be statically linked, so we use the 3rdParty okhttp3 library. -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp-jvm</artifactId>
+            <version>5.3.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -44,6 +51,29 @@
                     <encoding>UTF-8</encoding>
                     <maxmem>1024m</maxmem>
                 </configuration>
+            </plugin>
+
+            <!-- Necessary to statically link deps into jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <!-- Instead of only including 'com.squareup.okhttp3' we only exclude Bitwig to avoid any missing sub-dependency problems -->
+                                <excludes>
+                                    <exclude>com.bitwig</exclude>
+                                </excludes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>

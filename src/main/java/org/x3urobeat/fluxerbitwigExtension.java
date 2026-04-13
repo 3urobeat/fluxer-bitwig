@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 12:25:38
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-13 19:00:56
+ * Last Modified: 2026-04-13 19:27:45
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -69,6 +69,20 @@ public class fluxerbitwigExtension extends ControllerExtension  {
 
 
     /**
+     * Initiates a status update event
+     */
+    public void updateStatus() {
+        this.logDebug("Got Project Update Event");
+
+        try {
+            request.updatePresence(false);
+        } catch (Exception e) {
+            logErr("Failed to consume project update event: " + e.getMessage());
+        }
+    }
+
+
+    /**
      * Called when extension is activated
      */
     @Override
@@ -79,6 +93,11 @@ public class fluxerbitwigExtension extends ControllerExtension  {
         // Show init notification
         host.showPopupNotification("[fluxer-bitwig] Extension activated!");
         host.println("Extension activated!");
+
+        // Get project update events and init a status update
+        this.activity.getProjectUpdateObserver(() -> {
+            this.updateStatus();
+        });
     }
 
 
@@ -87,8 +106,18 @@ public class fluxerbitwigExtension extends ControllerExtension  {
      */
     @Override
     public void exit() {
+
+        // Clear status if we ever sent one. Ignore errors because whatyagonnadonow
+        try {
+            if (this.request.getLastStatusText().length() > 0) {
+                this.request.sendPresenceUpdate("");
+            }
+        } catch(Exception e) {}
+
+        // Goodbye
         getHost().showPopupNotification("[fluxer-bitwig] Extension deactivated");
         getHost().println("Extension deactivated");
+
     }
 
 

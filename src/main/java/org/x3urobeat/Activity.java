@@ -4,7 +4,7 @@
  * Created Date: 2026-04-13 17:42:14
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-13 19:11:32
+ * Last Modified: 2026-04-13 21:07:23
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -35,19 +35,13 @@ public class Activity {
 
     /**
      * Constructor
+     * @param projectUpdateEventHandler Function called on project update event
      */
-    public Activity(fluxerbitwigExtension ext) {
+    public Activity(fluxerbitwigExtension ext, Runnable projectUpdateEventHandler) {
         this.ext = ext;
-    }
 
-
-    /**
-     * Register a project update event handler
-     * @param callback Function called when activity should be updated
-     */
-    public void getProjectUpdateObserver(Runnable callback) {
-        this.ext.app.projectName().addValueObserver(_value -> { callback.run(); });
-        this.ext.app.panelLayout().addValueObserver(_value -> { callback.run(); });
+        this.ext.app.projectName().addValueObserver(_value -> { projectUpdateEventHandler.run(); });
+        this.ext.app.panelLayout().addValueObserver(_value -> { projectUpdateEventHandler.run(); });
     }
 
 

@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 12:25:38
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-13 19:27:45
+ * Last Modified: 2026-04-13 22:48:00
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -42,8 +42,9 @@ public class fluxerbitwigExtension extends ControllerExtension  {
     protected fluxerbitwigExtension(final fluxerbitwigExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
 
-        config  = new Config();
-        activity = new Activity(this);
+        // Create plugin class instances and register handler for update events
+        config   = new Config();
+        activity = new Activity(this, () -> this.updateStatus());
         request  = new Request(this);
     }
 
@@ -125,8 +126,6 @@ public class fluxerbitwigExtension extends ControllerExtension  {
      * Called when extension should flush any pending updates
      */
     @Override
-    public void flush() {
-        // TODO Send any updates you need here.
-    }
+    public void flush() { }
 
 }

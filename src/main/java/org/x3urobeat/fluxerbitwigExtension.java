@@ -27,8 +27,16 @@ import com.bitwig.extension.controller.ControllerExtension;
 
 public class fluxerbitwigExtension extends ControllerExtension  {
 
+    public Config config;
+
+
+    /**
+     * Constructor, called by Bitwig (Host)
+     */
     protected fluxerbitwigExtension(final fluxerbitwigExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
+
+        config  = new Config();
     }
 
     /** Logs debug message to Bitwig controller console */

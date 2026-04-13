@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 20:01:21
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-13 17:13:59
+ * Last Modified: 2026-04-13 18:42:09
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -149,7 +149,7 @@ public class Request {
     public void updatePresence(final boolean force) throws Exception {
 
         // Get current activity
-        String activityText = ""; // TODO
+        String activityText = this.ext.activity.getActivityText();
 
         // Defer update if last sent activity matches current and an update has been sent in the last statusUntil ms
         final boolean recentlyUpdated = lastUpdateTimestamp > 0 && lastUpdateTimestamp + this.ext.config.statusUntil > System.currentTimeMillis();

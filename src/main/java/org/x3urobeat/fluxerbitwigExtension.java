@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 12:25:38
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-13 17:11:04
+ * Last Modified: 2026-04-13 19:00:56
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -17,6 +17,7 @@
 
 package org.x3urobeat;
 
+import com.bitwig.extension.controller.api.Application;
 import com.bitwig.extension.controller.api.ControllerHost;
 import com.bitwig.extension.controller.ControllerExtension;
 
@@ -28,8 +29,11 @@ import com.bitwig.extension.controller.ControllerExtension;
 
 public class fluxerbitwigExtension extends ControllerExtension  {
 
-    public Config config;
-    public Request request;
+    public Activity activity;
+    public Config   config;
+    public Request  request;
+
+    public Application app; // Contains active project & app state information
 
 
     /**
@@ -39,7 +43,8 @@ public class fluxerbitwigExtension extends ControllerExtension  {
         super(definition, host);
 
         config  = new Config();
-        request = new Request(this);
+        activity = new Activity(this);
+        request  = new Request(this);
     }
 
     /** Logs debug message to Bitwig controller console */
@@ -69,7 +74,9 @@ public class fluxerbitwigExtension extends ControllerExtension  {
     @Override
     public void init() {
         final ControllerHost host = getHost();
+        this.app = host.createApplication();   // Has to be created in init or Bitwig gets angry at us
 
+        // Show init notification
         host.showPopupNotification("[fluxer-bitwig] Extension activated!");
         host.println("Extension activated!");
     }

@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 20:01:21
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-13 18:42:09
+ * Last Modified: 2026-04-15 17:41:07
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -34,9 +34,11 @@ public class Request {
 
     private String lastStatusText;
     private long lastUpdateTimestamp;
+    private long lastSendAttempt;
 
     private static final String API_URL = "https://web.fluxer.app/api/v1/users/@me/settings";
-    private static final int TIMEOUT_MS = 10000;
+    private static final int TIMEOUT_MS  = 10000;
+    private static final int COOLDOWN_MS = 2500;  // Do not send requests quicker than this
 
     private final fluxerbitwigExtension ext;
 
@@ -69,6 +71,12 @@ public class Request {
      * @param payload Encoded JSON payload to send in request
      */
     private void sendApiRequest(final String authToken, final String payload) throws Exception {
+
+        // Ignore request if on cooldown to prevent spamming API
+        if (lastSendAttempt + COOLDOWN_MS > System.currentTimeMillis()) {
+            throw new Exception("On cooldown");
+        }
+        lastSendAttempt = System.currentTimeMillis();
 
         // Create request
         OkHttpClient client = new OkHttpClient()
@@ -111,6 +119,9 @@ public class Request {
      * @param activityText Activity text to send
      */
     public void sendPresenceUpdate(final String activityText) throws Exception {
+        if (this.ext.config.token == null || this.ext.config.token.length() == 0) {
+            throw new Exception("No token set");
+        }
 
         // Construct and encode presence data to send
         final String expiresAt = Instant.ofEpochMilli(System.currentTimeMillis() + this.ext.config.statusUntil).toString();
@@ -137,7 +148,6 @@ public class Request {
             this.ext.showNotification("Failed to send status update to Fluxer API: " + error.getMessage());
             throw error; // Rethrow
         }
-
     }
 
 

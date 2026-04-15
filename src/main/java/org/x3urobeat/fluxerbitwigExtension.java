@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 12:25:38
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-13 22:48:00
+ * Last Modified: 2026-04-15 17:39:53
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -42,10 +42,16 @@ public class fluxerbitwigExtension extends ControllerExtension  {
     protected fluxerbitwigExtension(final fluxerbitwigExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
 
-        // Create plugin class instances and register handler for update events
-        config   = new Config();
-        activity = new Activity(this, () -> this.updateStatus());
-        request  = new Request(this);
+        // Create config class
+        config = new Config(this, () -> {
+            this.logDebug("Got Config Update Event");
+
+            if (!this.config.enable) {
+                return;
+            }
+
+            this.updateStatus(); // ...but in any enabled case we want to update our status to apply changed settings
+        });
     }
 
     /** Logs debug message to Bitwig controller console */
@@ -91,14 +97,18 @@ public class fluxerbitwigExtension extends ControllerExtension  {
         final ControllerHost host = getHost();
         this.app = host.createApplication();   // Has to be created in init or Bitwig gets angry at us
 
-        // Show init notification
-        host.showPopupNotification("[fluxer-bitwig] Extension activated!");
         host.println("Extension activated!");
 
-        // Get project update events and init a status update
-        this.activity.getProjectUpdateObserver(() -> {
-            this.updateStatus();
-        });
+        // Register config inputs in Bitwig controller popup and stop further execution if extension is disabled
+        this.config.registerSettings();
+
+        if (!this.config.enable) return;
+
+        // Create plugin class instances and register handler for update events
+        activity = new Activity(this, () -> this.updateStatus());
+        request  = new Request(this);
+
+        //host.showPopupNotification("[fluxer-bitwig] Extension activated!");
     }
 
 

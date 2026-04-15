@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 12:25:38
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-15 17:39:53
+ * Last Modified: 2026-04-15 17:42:05
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -35,23 +35,14 @@ public class fluxerbitwigExtension extends ControllerExtension  {
 
     public Application app; // Contains active project & app state information
 
+    public boolean isInitialized = false;
+
 
     /**
      * Constructor, called by Bitwig (Host)
      */
     protected fluxerbitwigExtension(final fluxerbitwigExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
-
-        // Create config class
-        config = new Config(this, () -> {
-            this.logDebug("Got Config Update Event");
-
-            if (!this.config.enable) {
-                return;
-            }
-
-            this.updateStatus(); // ...but in any enabled case we want to update our status to apply changed settings
-        });
     }
 
     /** Logs debug message to Bitwig controller console */
@@ -79,6 +70,8 @@ public class fluxerbitwigExtension extends ControllerExtension  {
      * Initiates a status update event
      */
     public void updateStatus() {
+        if (!isInitialized) return; // Extension is disabled
+
         this.logDebug("Got Project Update Event");
 
         try {
@@ -90,33 +83,39 @@ public class fluxerbitwigExtension extends ControllerExtension  {
 
 
     /**
-     * Called when extension is activated
+     * Internal: Initializes the extension
      */
-    @Override
-    public void init() {
+    private void initializeExtension() {
+        if (isInitialized) return; // Safeguard
+
         final ControllerHost host = getHost();
-        this.app = host.createApplication();   // Has to be created in init or Bitwig gets angry at us
 
-        host.println("Extension activated!");
+        // Is extension disabled in settings?
+        if (!this.config.enable) {
+            this.logInfo("Ignoring extension init because extension is disabled");
+            return;
+        }
 
-        // Register config inputs in Bitwig controller popup and stop further execution if extension is disabled
-        this.config.registerSettings();
-
-        if (!this.config.enable) return;
-
-        // Create plugin class instances and register handler for update events
-        activity = new Activity(this, () -> this.updateStatus());
-        request  = new Request(this);
-
+        this.logInfo("Initializing extension...");
         //host.showPopupNotification("[fluxer-bitwig] Extension activated!");
+
+        // Deny further init if no token is set
+        if (config.token == null || config.token.length() == 0) {
+            this.logErr("No Fluxer token set!");
+            host.showPopupNotification("Please configure your Fluxer token in the extension settings!");
+        }
+
+        this.isInitialized = true;
     }
 
 
     /**
-     * Called when extension is deactivated
+     * Internal: Uninitializes the extension
      */
-    @Override
-    public void exit() {
+    private void uninitializeExtension() {
+        if (!isInitialized) return; // Safeguard
+
+        this.logInfo("Uninitializing extension...");
 
         // Clear status if we ever sent one. Ignore errors because whatyagonnadonow
         try {
@@ -125,10 +124,49 @@ public class fluxerbitwigExtension extends ControllerExtension  {
             }
         } catch(Exception e) {}
 
-        // Goodbye
-        getHost().showPopupNotification("[fluxer-bitwig] Extension deactivated");
-        getHost().println("Extension deactivated");
+        this.isInitialized = false;
+    }
 
+
+    /**
+     * Called (once!) by Bitwig when the extension is activated
+     */
+    @Override
+    public void init() {
+        final ControllerHost host = getHost();
+        this.app = host.createApplication();   // Has to be created in init or Bitwig gets angry at us
+
+        this.logInfo("Extension got activated!");
+
+        // Create plugin class instances and register handler for update events
+        config = new Config(this, () -> {
+            this.logDebug("Got Config Update Event");
+
+            if (!this.config.enable) {
+                this.uninitializeExtension();
+                return;
+            }
+
+            this.initializeExtension(); // If extension is already initialized, nothing will happen
+            this.updateStatus();        // ...but in any enabled case we want to update our status to apply changed settings
+        });
+        activity = new Activity(this, () -> this.updateStatus());
+        request  = new Request(this);
+    }
+
+
+    /**
+     * Called by Bitwig when extension is deactivated
+     */
+    @Override
+    public void exit() {
+        this.uninitializeExtension();
+
+        // Goodbye
+        // getHost().showPopupNotification("[fluxer-bitwig] Extension deactivated");
+        this.logInfo("Extension got deactivated");
+
+        this.isInitialized = false;
     }
 
 

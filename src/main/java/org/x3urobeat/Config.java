@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 20:54:10
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-15 17:39:57
+ * Last Modified: 2026-04-15 17:42:03
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -55,13 +55,24 @@ public class Config {
     public Config(fluxerbitwigExtension ext, Runnable configUpdateEventHandler) {
         this.ext = ext;
         this.configUpdateEventHandler = configUpdateEventHandler;
+
+        this.registerSettings();
+    }
+
+
+    /**
+     * Handles setting update event
+     */
+    private void updateSetting() {
+        // Emit update to registered event handler
+        this.configUpdateEventHandler.run();
     }
 
 
     /**
      * Registers setting inputs in Bitwig Controller popout
      */
-    public void registerSettings() {
+    private void registerSettings() {
         ControllerHost host = this.ext.getHost();
 
         // Register setting inputs & handlers that appear in the controller popout
@@ -110,17 +121,6 @@ public class Config {
             this.statusClearIdleAfter = (int) value * 1000;
             updateSetting();
         });
-    }
-
-
-    /**
-     * Handles setting update event
-     */
-    private void updateSetting() {
-
-        // Emit update to registered event handler
-        this.configUpdateEventHandler.run();
-
     }
 
 }

@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 12:25:38
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-13 17:11:06
+ * Last Modified: 2026-04-15 17:43:00
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -16,6 +16,7 @@
 
 
 package org.x3urobeat;
+
 import java.util.UUID;
 
 import com.bitwig.extension.api.PlatformType;
@@ -34,7 +35,7 @@ public class fluxerbitwigExtensionDefinition extends ControllerExtensionDefiniti
    @Override
    public String getName()
    {
-      return "fluxer-bitwig";
+      return "Fluxer Bitwig";
    }
 
    @Override

@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 20:54:10
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-13 17:26:19
+ * Last Modified: 2026-04-15 17:39:57
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -17,6 +17,13 @@
 
 package org.x3urobeat;
 
+import com.bitwig.extension.controller.api.ControllerHost;
+import com.bitwig.extension.controller.api.DocumentState;
+import com.bitwig.extension.controller.api.SettableBooleanValue;
+import com.bitwig.extension.controller.api.SettableEnumValue;
+import com.bitwig.extension.controller.api.SettableRangedValue;
+import com.bitwig.extension.controller.api.SettableStringValue;
+
 
 /**
  * Contains extension configuration
@@ -24,23 +31,95 @@ package org.x3urobeat;
 
 public class Config {
 
+    private final fluxerbitwigExtension ext;
+    private final Runnable              configUpdateEventHandler;
+
+    private static final String booleanOptions[] = { "Off", "On" };
+
     // Config items
     public boolean  enable              = true;
-    public int      updateCheckInterval = 5000;
     public int      statusUntil         = 300000;
     public String   token               = "";
 
-    public String  statusFormat         = "🎮 {appName} {activityText}";
+    public String  statusFormat         = "🎹 {appName} {activityText}";
     public String  statusActivityText   = "- {activity}";
-    public String  statusAppName        = "VSCode";
+    public String  statusAppName        = "Bitwig Studio";
     public boolean statusShowIdle       = true;
     public int     statusClearIdleAfter = 0;
 
 
     /**
      * Constructor
+     * @param configUpdateEventHandler Function called on config update event
      */
-    public Config() {
+    public Config(fluxerbitwigExtension ext, Runnable configUpdateEventHandler) {
+        this.ext = ext;
+        this.configUpdateEventHandler = configUpdateEventHandler;
+    }
+
+
+    /**
+     * Registers setting inputs in Bitwig Controller popout
+     */
+    public void registerSettings() {
+        ControllerHost host = this.ext.getHost();
+
+        // Register setting inputs & handlers that appear in the controller popout
+        DocumentState documentState = host.getDocumentState();
+
+        SettableEnumValue enableSetting = documentState.getEnumSetting("Enable", "opts", booleanOptions, this.enable ? booleanOptions[1] : booleanOptions[0]); // Roundabout way to display a boolean setting (Off, On)
+        enableSetting.addValueObserver(value -> {
+            this.enable = value.equals(booleanOptions[1]);
+            updateSetting();
+        });
+
+        // Not exposing statusUntil for now
+
+        SettableStringValue tokenSetting = documentState.getStringSetting("Fluxer Token", "opts", 32, this.token);
+        tokenSetting.addValueObserver(value -> {
+            this.token = value;
+            updateSetting();
+        });
+
+        SettableStringValue statusFormatSetting = documentState.getStringSetting("Status Format", "opts", 32, this.statusFormat);
+        statusFormatSetting.addValueObserver(value -> {
+            this.statusFormat = value;
+            updateSetting();
+        });
+
+        SettableStringValue statusActivityTextSetting = documentState.getStringSetting("Status Activity Text", "opts", 32, this.statusActivityText);
+        statusActivityTextSetting.addValueObserver(value -> {
+            this.statusActivityText = value;
+            updateSetting();
+        });
+
+        SettableStringValue statusAppNameSetting = documentState.getStringSetting("Status App Name", "opts", 32, this.statusAppName);
+        statusAppNameSetting.addValueObserver(value -> {
+            this.statusAppName = value;
+            updateSetting();
+        });
+
+        SettableEnumValue statusShowIdleSetting = documentState.getEnumSetting("Show Idle", "opts", booleanOptions, this.statusShowIdle ? booleanOptions[1] : booleanOptions[0]); // Roundabout way to display a boolean setting (Off, On)
+        statusShowIdleSetting.addValueObserver(value -> {
+            this.statusShowIdle = value.equals(booleanOptions[1]);;
+            updateSetting();
+        });
+
+        SettableRangedValue statusClearIdleAfterSetting = documentState.getNumberSetting("Clear Idle After", "opts", 0, 3600, 60, "sec", this.statusClearIdleAfter / 1000);
+        statusClearIdleAfterSetting.addValueObserver(value -> {
+            this.statusClearIdleAfter = (int) value * 1000;
+            updateSetting();
+        });
+    }
+
+
+    /**
+     * Handles setting update event
+     */
+    private void updateSetting() {
+
+        // Emit update to registered event handler
+        this.configUpdateEventHandler.run();
 
     }
 

@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 20:01:21
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-15 17:41:07
+ * Last Modified: 2026-04-19 21:03:23
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -19,6 +19,11 @@ package org.x3urobeat;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -35,6 +40,8 @@ public class Request {
     private String lastStatusText;
     private long lastUpdateTimestamp;
     private long lastSendAttempt;
+
+    private Timer refreshTimer;
 
     private static final String API_URL = "https://web.fluxer.app/api/v1/users/@me/settings";
     private static final int TIMEOUT_MS  = 10000;
@@ -114,6 +121,42 @@ public class Request {
 
 
     /**
+     * (Re-)Attaches periodic task to refresh status if no update occurred in the last 'config.statusUntil' ms
+     */
+    private void reattachRefreshTimerTask() {
+        if (this.ext.config.statusUntil <= 0) return; // Ignore request if status doesn't expire
+
+        // Cancel any running timer
+        if (refreshTimer != null) {
+            refreshTimer.cancel();
+            refreshTimer = null;
+        }
+
+        // Create new timer
+        refreshTimer = new Timer();
+
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                ext.logInfo("Refresh Timer: Updating status...");
+
+                try {
+                    updatePresence(true); // Force update
+                } catch(Exception e) {
+                    ext.logErr("Refresh Timer: Failed to update status: " + e.getMessage()); // Timer will run again
+                }
+            }
+        };
+
+        long period = Math.max(this.ext.config.statusUntil - 2500, COOLDOWN_MS); // Refresh 2.5 seconds before expiration, clamp to COOLDOWN_MS
+
+        refreshTimer.scheduleAtFixedRate(task, period, period);
+
+        this.ext.logDebug("Scheduled new refresh timer task!");
+    }
+
+
+    /**
      * Sends presence update to Fluxer API
      * @throws Exception Throws Error on failure
      * @param activityText Activity text to send
@@ -173,6 +216,9 @@ public class Request {
 
         // Send request
         this.sendPresenceUpdate(activityText);
+
+        // Make sure status doesn't expire if user does not trigger update in statusUntil ms
+        this.reattachRefreshTimerTask();
 
     }
 

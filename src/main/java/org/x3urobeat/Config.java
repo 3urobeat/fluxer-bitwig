@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 20:54:10
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-17 15:20:40
+ * Last Modified: 2026-04-19 20:39:29
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -45,7 +45,7 @@ public class Config {
 
     // Config items
     public boolean  enable              = true;
-    public int      statusUntil         = 300000;
+    public int      statusUntil         = 300000; // Internal: How long Fluxer status is set
     public String   token               = "";
 
     public String  statusFormat         = "🎹 {appName} {activityText}";

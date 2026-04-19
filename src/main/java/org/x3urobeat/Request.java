@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 20:01:21
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-19 21:03:23
+ * Last Modified: 2026-04-19 22:53:40
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -40,6 +40,8 @@ public class Request {
     private String lastStatusText;
     private long lastUpdateTimestamp;
     private long lastSendAttempt;
+
+    private Timer cooldownTimer;
 
     private Timer refreshTimer;
 
@@ -79,9 +81,32 @@ public class Request {
      */
     private void sendApiRequest(final String authToken, final String payload) throws Exception {
 
-        // Ignore request if on cooldown to prevent spamming API
+        // Queue request if on cooldown, replacing any existing pending request
         if (lastSendAttempt + COOLDOWN_MS > System.currentTimeMillis()) {
-            throw new Exception("On cooldown");
+            this.ext.logDebug("On cooldown, queueing request...");
+
+            // Cancel existing timer if any
+            if (cooldownTimer != null) {
+                cooldownTimer.cancel();
+            }
+
+            // Schedule new timer to execute pending request after cooldown
+            cooldownTimer = new Timer();
+            cooldownTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    ext.logDebug("Cooldown Timer: Sending queued request...");
+                    try {
+                        // Reset to allow immediate send
+                        lastSendAttempt = 0;
+                        sendApiRequest(authToken, payload);
+                    } catch (Exception e) {
+                        ext.logErr("Cooldown Timer: Failed to send queued request: " + e.getMessage()); // This sadly consumes Exception but eh
+                    }
+                }
+            }, lastSendAttempt + COOLDOWN_MS - System.currentTimeMillis());
+
+            return;
         }
         lastSendAttempt = System.currentTimeMillis();
 

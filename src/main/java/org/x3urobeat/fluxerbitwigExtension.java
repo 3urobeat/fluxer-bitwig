@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 12:25:38
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-15 17:42:05
+ * Last Modified: 2026-04-20 17:15:44
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -161,12 +161,11 @@ public class fluxerbitwigExtension extends ControllerExtension  {
     @Override
     public void exit() {
         this.uninitializeExtension();
+        this.config.stopWatcher();
 
         // Goodbye
         // getHost().showPopupNotification("[fluxer-bitwig] Extension deactivated");
         this.logInfo("Extension got deactivated");
-
-        this.isInitialized = false;
     }
 
 

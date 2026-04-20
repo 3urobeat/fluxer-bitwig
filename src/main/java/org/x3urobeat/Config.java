@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 20:54:10
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-19 20:39:29
+ * Last Modified: 2026-04-20 17:15:34
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -26,10 +26,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 /**
@@ -42,6 +50,10 @@ public class Config {
     private final Runnable              configUpdateEventHandler;
 
     private static final String booleanOptions[] = { "Off", "On" };
+
+    private ExecutorService watcherExecutor;
+    private WatchService    watchService;
+
 
     // Config items
     public boolean  enable              = true;
@@ -65,6 +77,77 @@ public class Config {
 
         this.loadConfig();
         this.registerSettings();
+
+        try {
+            this.startConfigWatcher();
+        } catch (Exception e) {
+            StringWriter sw = new StringWriter(); // Converts exception stacktrace to string
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            String sStackTrace = sw.toString();
+
+            ext.logErr("Couldn't register config file watcher! Error: " + sStackTrace);
+        }
+    }
+
+    // https://www.baeldung.com/java-nio2-watchservice
+
+
+    /**
+     * Starts a background thread watching for config file changes and inits a reload
+     */
+    private void startConfigWatcher() throws Exception {
+        Path configFile = getConfigFilePath();
+
+        WatchService watchService = FileSystems.getDefault().newWatchService();
+
+        ext.logDebug("Attaching config file watcher...");
+
+        watcherExecutor = Executors.newSingleThreadExecutor();
+        watcherExecutor.submit(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    WatchKey key = watchService.take();
+
+                    for (WatchEvent<?> event : key.pollEvents()) {
+                        Path changed = (Path) event.context();
+
+                        if (changed.equals(configFile.getFileName())) {
+                            ext.logInfo("Config File Update Event kind: " + event.kind()
+                                + ". File affected: " + changed);
+
+                            loadConfig();
+                            updateSetting();
+                        }
+                    }
+
+                    key.reset();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        });
+    }
+
+
+    /**
+     * Stops the config file watcher, call on extension unload
+     */
+    public void stopWatcher() {
+        this.ext.logDebug("Stopping config file watcher...");
+
+        if (watcherExecutor != null) {
+            watcherExecutor.shutdownNow();
+        }
+
+        if (watchService != null) {
+            try {
+                watchService.close();
+            } catch (IOException e) {
+                ext.logErr("Failed to close watch service: " + e.getMessage());
+            }
+        }
     }
 
 

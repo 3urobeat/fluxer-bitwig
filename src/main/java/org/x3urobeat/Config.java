@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 20:54:10
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-20 17:15:34
+ * Last Modified: 2026-04-20 17:16:23
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -20,6 +20,7 @@ package org.x3urobeat;
 import com.bitwig.extension.controller.api.ControllerHost;
 import com.bitwig.extension.controller.api.DocumentState;
 import com.bitwig.extension.controller.api.SettableEnumValue;
+import com.bitwig.extension.controller.api.Signal;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -330,6 +331,46 @@ public class Config {
             this.statusClearIdleAfter = (int) value * 1000;
             updateSetting();
         }); */
+
+        Signal openConfigButton = documentState.getSignalSetting("Open Configuration File", "opts", "Open '" + getConfigFilePath().toString() + "'");
+        openConfigButton.addSignalObserver(() -> {
+            this.ext.logDebug("Button 'Open Configuration File' was pressed!");
+
+            try {
+                String file = getConfigFilePath().toAbsolutePath().toString();
+
+                // We cannot use 'java.awt.Desktop.getDesktop().open(file)' because we are in a headless application
+                String os = System.getProperty("os.name").toLowerCase();
+
+                if (os.contains("win")) {
+                    new ProcessBuilder("cmd", "/c", "start", "\"\"", file).inheritIO().start(); // start "" "path" opens with associated app; /B avoids new window
+
+                } else if (os.contains("mac")) {
+                    new ProcessBuilder("open", file).inheritIO().start();
+
+                } else {
+                    ProcessBuilder pb = new ProcessBuilder("xdg-open", file); // Linux/Unix: try xdg-open, then sensible-editor, then vi as last resort
+
+                    try {
+                        pb.inheritIO().start();
+                    } catch (IOException e) {
+                        try {
+                            new ProcessBuilder("sensible-editor", file).inheritIO().start();
+                        } catch (IOException e2) {
+                            new ProcessBuilder("vi", file).inheritIO().start();
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                StringWriter sw = new StringWriter(); // Converts exception stacktrace to string
+                PrintWriter pw = new PrintWriter(sw);
+                e.printStackTrace(pw);
+                String sStackTrace = sw.toString();
+
+                ext.logErr("Couldn't open config file using default editor! Error: " + sStackTrace);
+                ext.showNotification("Couldn't open text editor :("); // Give user feedback
+            }
+        });
     }
 
 }

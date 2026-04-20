@@ -70,10 +70,8 @@ Press Add. A new controller (🎹 keyboard) icon will appear in the top right co
 The extension uses an external configuration file, so that your settings apply to all your Bitwig projects and are not saved within them.  
 One exception is the "Enable" setting, which can be configured on a per-project basis.
 
-Please locate the config file (after having started Bitwig once) at:
-- Linux: ~/.config/fluxer-bitwig/config.properties
-- macOS: ~/Library/Application Support/fluxer-bitwig/config.properties
-- Windows: %APPDATA%\fluxer-bitwig\config.properties
+In Bitwig, open Fluxer Bitwig's controller popout (🎹 in the top right) and press the 'Open Configuration File' button.  
+Your default text editor should open. (Not working? Find and open the file manually, see [Settings](#extension-settings) below!)
 
 You need to provide your Fluxer user token so the extension can make the API requests to update your account's status.  
 All other settings can be left at default.  
@@ -85,7 +83,7 @@ To retrieve your user token:
 5. Find the entry `token` in the table on the right and copy its value `flx_abcdefg...`
 6. Inside the opened config file, paste it after `token=` and save the file.
 
-Please (re)start Bitwig. Open a project and take a look at your Fluxer status!
+The extension will automatically reload. Open a project and take a look at your Fluxer status!
 
 &nbsp;
 
@@ -113,6 +111,8 @@ Cross-Project Extension Settings are saved in a project file on your system. The
 - Linux: ~/.config/fluxer-bitwig/config.properties
 - macOS: ~/Library/Application Support/fluxer-bitwig/config.properties
 - Windows: %APPDATA%\fluxer-bitwig\config.properties
+
+You can open the configuration file from within the Fluxer Bitwig Controller popout in Bitwig (🎹 in the top right).
 
 | Setting | Default | Description |
 |---------|---------|-------------|

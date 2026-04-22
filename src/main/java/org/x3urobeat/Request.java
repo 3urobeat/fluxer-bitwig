@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 20:01:21
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-19 22:53:40
+ * Last Modified: 2026-04-22 17:59:58
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -78,11 +78,12 @@ public class Request {
      * @throws Exception Throws Exception on failure
      * @param authToken Fluxer auth token to supply
      * @param payload Encoded JSON payload to send in request
+     * @param force Set to true to bypass cooldown (should only be used in exit!)
      */
-    private void sendApiRequest(final String authToken, final String payload) throws Exception {
+    private void sendApiRequest(final String authToken, final String payload, final boolean force) throws Exception {
 
         // Queue request if on cooldown, replacing any existing pending request
-        if (lastSendAttempt + COOLDOWN_MS > System.currentTimeMillis()) {
+        if (lastSendAttempt + COOLDOWN_MS > System.currentTimeMillis() && !force) {
             this.ext.logDebug("On cooldown, queueing request...");
 
             // Cancel existing timer if any
@@ -99,7 +100,7 @@ public class Request {
                     try {
                         // Reset to allow immediate send
                         lastSendAttempt = 0;
-                        sendApiRequest(authToken, payload);
+                        sendApiRequest(authToken, payload, false);
                     } catch (Exception e) {
                         ext.logErr("Cooldown Timer: Failed to send queued request: " + e.getMessage()); // This sadly consumes Exception but eh
                     }
@@ -185,8 +186,9 @@ public class Request {
      * Sends presence update to Fluxer API
      * @throws Exception Throws Error on failure
      * @param activityText Activity text to send
+     * @param force Set to true to bypass cooldown (should only be used in exit!)
      */
-    public void sendPresenceUpdate(final String activityText) throws Exception {
+    public void sendPresenceUpdate(final String activityText, final boolean force) throws Exception {
         if (this.ext.config.token == null || this.ext.config.token.length() == 0) {
             throw new Exception("No token set");
         }
@@ -204,7 +206,7 @@ public class Request {
 
         // Attempt to send
         try {
-            this.sendApiRequest(this.ext.config.token, payload);
+            this.sendApiRequest(this.ext.config.token, payload, force);
             this.ext.logDebug("Successfully sent status update to Fluxer API!");
 
             lastStatusText      = activityText;
@@ -240,7 +242,7 @@ public class Request {
         this.ext.logInfo("New activity detected, updating status from '" + lastStatusText + "' to '" + activityText + "'...");
 
         // Send request
-        this.sendPresenceUpdate(activityText);
+        this.sendPresenceUpdate(activityText, false);
 
         // Make sure status doesn't expire if user does not trigger update in statusUntil ms
         this.reattachRefreshTimerTask();

@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 12:25:38
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-22 17:57:03
+ * Last Modified: 2026-04-22 18:05:25
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -37,6 +37,8 @@ public class fluxerbitwigExtension extends ControllerExtension  {
 
     public boolean isInitialized = false;
 
+    public static final boolean enableDebugLogs = false;
+
 
     /**
      * Constructor, called by Bitwig (Host)
@@ -47,7 +49,9 @@ public class fluxerbitwigExtension extends ControllerExtension  {
 
     /** Logs debug message to Bitwig controller console */
     public void logDebug(String txt) {
-        getHost().println("[fluxer-bitwig | DEBUG] " + txt);
+        if (enableDebugLogs) {
+            getHost().println("[fluxer-bitwig | DEBUG] " + txt);
+        }
     }
 
     /** Logs info message to Bitwig controller console */

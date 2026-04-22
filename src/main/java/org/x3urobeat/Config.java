@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 20:54:10
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-20 17:16:23
+ * Last Modified: 2026-04-22 18:25:21
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
@@ -91,18 +92,17 @@ public class Config {
         }
     }
 
-    // https://www.baeldung.com/java-nio2-watchservice
-
 
     /**
      * Starts a background thread watching for config file changes and inits a reload
      */
     private void startConfigWatcher() throws Exception {
+        ext.logDebug("Attaching config file watcher...");
+
         Path configFile = getConfigFilePath();
 
-        WatchService watchService = FileSystems.getDefault().newWatchService();
-
-        ext.logDebug("Attaching config file watcher...");
+        watchService = FileSystems.getDefault().newWatchService();
+        configFile.getParent().register(watchService, StandardWatchEventKinds.ENTRY_MODIFY, StandardWatchEventKinds.ENTRY_CREATE);
 
         watcherExecutor = Executors.newSingleThreadExecutor();
         watcherExecutor.submit(() -> {
@@ -112,10 +112,10 @@ public class Config {
 
                     for (WatchEvent<?> event : key.pollEvents()) {
                         Path changed = (Path) event.context();
+                        // ext.logDebug("Update event " + event.kind() + " on file " + changed);
 
                         if (changed.equals(configFile.getFileName())) {
-                            ext.logInfo("Config File Update Event kind: " + event.kind()
-                                + ". File affected: " + changed);
+                            ext.logInfo("Config File Update Event kind: " + event.kind() + ". File affected: " + changed);
 
                             loadConfig();
                             updateSetting();
@@ -124,6 +124,7 @@ public class Config {
 
                     key.reset();
                 } catch (InterruptedException e) {
+                    ext.logInfo("Config file watcher was interrupted.");
                     Thread.currentThread().interrupt();
                     break;
                 }

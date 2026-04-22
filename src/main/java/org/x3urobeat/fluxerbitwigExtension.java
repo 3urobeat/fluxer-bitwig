@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 12:25:38
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-20 17:15:44
+ * Last Modified: 2026-04-22 17:57:03
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -120,7 +120,7 @@ public class fluxerbitwigExtension extends ControllerExtension  {
         // Clear status if we ever sent one. Ignore errors because whatyagonnadonow
         try {
             if (this.request.getLastStatusText().length() > 0) {
-                this.request.sendPresenceUpdate("");
+                this.request.sendPresenceUpdate("", true); // Force
             }
         } catch(Exception e) {}
 

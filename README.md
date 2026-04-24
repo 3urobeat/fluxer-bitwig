@@ -83,7 +83,8 @@ To retrieve your user token:
 5. Find the entry `token` in the table on the right and copy its value `flx_abcdefg...`
 6. Inside the opened config file, paste it after `token=` and save the file.
 
-The extension will automatically reload. Open a project and take a look at your Fluxer status!
+The extension should automatically reload. If it does not detect the file update, restart Bitwig.  
+Open a project and take a look at your Fluxer status!
 
 &nbsp;
 
@@ -108,9 +109,9 @@ The following settings are saved inside the project file:
 
 ### Cross-Project
 Cross-Project Extension Settings are saved in a project file on your system. The following paths are used:
-- Linux: ~/.config/fluxer-bitwig/config.properties
-- macOS: ~/Library/Application Support/fluxer-bitwig/config.properties
-- Windows: %APPDATA%\fluxer-bitwig\config.properties
+- Linux: `~/.config/fluxer-bitwig/config.properties`
+- macOS: `~/Library/Application Support/fluxer-bitwig/config.properties`
+- Windows: `%APPDATA%\fluxer-bitwig\config.properties`
 
 You can open the configuration file from within the Fluxer Bitwig Controller popout in Bitwig (🎹 in the top right).
 

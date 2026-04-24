@@ -4,7 +4,7 @@
  * Created Date: 2026-04-12 12:25:38
  * Author: 3urobeat
  *
- * Last Modified: 2026-04-15 17:43:00
+ * Last Modified: 2026-04-24 15:46:10
  * Modified By: 3urobeat
  *
  * Copyright (c) 2026 3urobeat <https://github.com/3urobeat>
@@ -47,7 +47,7 @@ public class fluxerbitwigExtensionDefinition extends ControllerExtensionDefiniti
    @Override
    public String getVersion()
    {
-      return "0.1";
+      return "1.0";
    }
 
    @Override
@@ -71,7 +71,7 @@ public class fluxerbitwigExtensionDefinition extends ControllerExtensionDefiniti
    @Override
    public int getRequiredAPIVersion()
    {
-      return 25;
+      return 18;
    }
 
    @Override
